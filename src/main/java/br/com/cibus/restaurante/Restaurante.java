@@ -2,8 +2,10 @@ package br.com.cibus.restaurante;
 
 import br.com.cibus.tipodecozinha.TipoDeCozinha;
 import jakarta.persistence.*;
+import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
+@DynamicUpdate
 public class Restaurante {
 
     @Id

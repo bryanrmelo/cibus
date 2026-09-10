@@ -1,12 +1,10 @@
 package br.com.cibus.tipodecozinha;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -29,5 +27,27 @@ public class TipoDeCozinhaController {
         TipoDeCozinha novoTipoDeCozinha = novoTipoDeCozinhaRequest.toEntity();
         tipoDeCozinhaRepository.save(novoTipoDeCozinha);
         return new ResponseEntity<>(new TipoDeCozinhaResponse(novoTipoDeCozinha), HttpStatus.CREATED);
+    }
+
+    @PutMapping("/tipos-de-cozinha/{id}")
+    public ResponseEntity<TipoDeCozinhaResponse> update(@PathVariable Long id, @RequestBody @Valid AtualizaTipoDeCozinhaRequest request) {
+        TipoDeCozinha tipoDeCozinha = tipoDeCozinhaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tipo de cozinha não encontrado"));
+
+        request.atualiza(tipoDeCozinha);
+        tipoDeCozinhaRepository.save(tipoDeCozinha);
+
+        return ResponseEntity.ok(new TipoDeCozinhaResponse(tipoDeCozinha));
+    }
+
+    @DeleteMapping("/tipos-de-cozinha/{id}")
+    public ResponseEntity<Void> remove(@PathVariable Long id) {
+        if (!tipoDeCozinhaRepository.existsById(id)) {
+            throw new EntityNotFoundException("Tipo de cozinha não encontrado");
+        }
+
+        tipoDeCozinhaRepository.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 }
