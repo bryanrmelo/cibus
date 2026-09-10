@@ -22,11 +22,21 @@ public class RestauranteController {
     }
 
     @GetMapping("/restaurantes")
-    public List<RestauranteResponse> listByTipo(@RequestParam Long tipoDeCozinhaId) {
-        return restauranteRepository.findByTipoDeCozinhaId(tipoDeCozinhaId)
-                .stream()
-                .map(RestauranteResponse::new)
-                .toList();
+    public List<RestauranteResponse> list(
+            @RequestParam(required = false) Long tipoDeCozinhaId,
+            @RequestParam(required = false) String formaDePagamento) {
+
+        List<Restaurante> restaurantes;
+
+        if (tipoDeCozinhaId != null) {
+            restaurantes = restauranteRepository.findByTipoDeCozinhaId(tipoDeCozinhaId);
+        } else if (formaDePagamento != null) {
+            restaurantes = restauranteRepository.findByFormasDePagamentoNome(formaDePagamento);
+        } else {
+            restaurantes = restauranteRepository.findAll();
+        }
+
+        return restaurantes.stream().map(RestauranteResponse::new).toList();
     }
 
     @GetMapping("/restaurantes/count")
@@ -64,6 +74,7 @@ public class RestauranteController {
         // retorna com 200
         return ResponseEntity.ok(new RestauranteResponse(restaurante));
     }
+
     @DeleteMapping("/restaurantes/{id}")
     public ResponseEntity<Void> remove(@PathVariable Long id) {
         // busca os dados do restaurante já existentes

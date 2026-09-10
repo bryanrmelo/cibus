@@ -1,8 +1,12 @@
 package br.com.cibus.restaurante;
 
+import br.com.cibus.formasdepagamento.FormaDePagamento;
 import br.com.cibus.tipodecozinha.TipoDeCozinha;
 import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicUpdate;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @DynamicUpdate
@@ -30,6 +34,14 @@ public class Restaurante {
     @ManyToOne
     @JoinColumn(name = "tipo_de_cozinha_id")
     private TipoDeCozinha tipoDeCozinha;
+
+    @ManyToMany
+    @JoinTable(
+            name = "restaurante_forma_pagamento",
+            joinColumns = @JoinColumn(name = "restaurante_id"),
+            inverseJoinColumns = @JoinColumn(name = "forma_pagamento_id")
+    )
+    private Set<FormaDePagamento> formasDePagamento = new HashSet<>();
 
     @Deprecated
     public Restaurante() {}
@@ -88,5 +100,11 @@ public class Restaurante {
 
     public void setTipoDeCozinha(TipoDeCozinha tipoDeCozinha) {
         this.tipoDeCozinha = tipoDeCozinha;
+    }
+    public Set<FormaDePagamento> getFormasDePagamento() {
+        return formasDePagamento;
+    }
+    public void setFormasDePagamento(Set<FormaDePagamento> formasDePagamento) {
+        this.formasDePagamento = formasDePagamento;
     }
 }
