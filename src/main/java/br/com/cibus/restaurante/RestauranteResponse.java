@@ -1,6 +1,10 @@
 package br.com.cibus.restaurante;
 
+import br.com.cibus.formasdepagamento.FormaDePagamentoResponse;
+import br.com.cibus.tipodecozinha.TipoDeCozinhaResponse;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 public class RestauranteResponse {
 
@@ -10,12 +14,35 @@ public class RestauranteResponse {
     @JsonProperty
     private String nome;
 
-    public RestauranteResponse(Restaurante restaurante) {
-        this(restaurante.getId(), restaurante.getNome());
-    }
+    @JsonProperty
+    private String cep;
 
-    public RestauranteResponse(Long id, String nome) {
-        this.id = id;
-        this.nome = nome;
+    @JsonProperty
+    private String endereco;
+
+    @JsonProperty
+    private String cnpj;
+
+    @JsonProperty
+    private String descricao;
+
+    @JsonProperty
+    private TipoDeCozinhaResponse tipoDeCozinha;
+
+    @JsonProperty
+    private List<FormaDePagamentoResponse> formasDePagamento;
+
+    public RestauranteResponse(Restaurante restaurante) {
+        this.id = restaurante.getId();
+        this.nome = restaurante.getNome();
+        this.cep = restaurante.getCep();
+        this.endereco = restaurante.getEndereco();
+        this.cnpj = restaurante.getCnpj();
+        this.descricao = restaurante.getDescricao();
+        this.tipoDeCozinha = new TipoDeCozinhaResponse(restaurante.getTipoDeCozinha());
+        this.formasDePagamento = restaurante.getFormasDePagamento()
+                .stream()
+                .map(FormaDePagamentoResponse::new)
+                .toList();
     }
 }

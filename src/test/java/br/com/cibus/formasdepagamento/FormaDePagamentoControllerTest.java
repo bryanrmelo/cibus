@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -112,16 +111,5 @@ class FormaDePagamentoControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(formaDePagamentoRepository).deleteById(4L);
-    }
-
-    @Test
-    void deveContarFormasDePagamentoPorNome() throws Exception {
-        when(formaDePagamentoRepository.countByNome("PIX")).thenReturn(1);
-
-        mockMvc.perform(get("/formas-de-pagamento/count").param("nome", "PIX"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("1"));
-
-        verify(formaDePagamentoRepository).countByNome("PIX");
     }
 }

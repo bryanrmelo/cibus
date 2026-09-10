@@ -1,5 +1,7 @@
 package br.com.cibus.restaurante;
 
+import br.com.cibus.formasdepagamento.FormaDePagamento;
+import br.com.cibus.formasdepagamento.FormaDePagamentoRepository;
 import br.com.cibus.tipodecozinha.TipoDeCozinha;
 import br.com.cibus.tipodecozinha.TipoDeCozinhaRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,6 +36,9 @@ class RestauranteControllerTest {
 
     @MockBean
     private TipoDeCozinhaRepository tipoDeCozinhaRepository;
+
+    @MockBean
+    private FormaDePagamentoRepository formaDePagamentoRepository;
 
     private final ObjectMapper jsonParser = new ObjectMapper();
 
@@ -91,6 +96,7 @@ class RestauranteControllerTest {
         Restaurante restaurante = new Restaurante();
         restaurante.setId(5L);
         restaurante.setNome("Cantina da Nonna");
+        restaurante.setTipoDeCozinha(tipoDeCozinhaValido());
 
         when(restauranteRepository.findByTipoDeCozinhaId(1L)).thenReturn(List.of(restaurante));
 
@@ -173,5 +179,70 @@ class RestauranteControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(restauranteRepository).deleteById(5L);
+    }
+
+    @Test
+    void deveBuscarRestaurantePorId() throws Exception {
+        Restaurante restaurante = new Restaurante();
+        restaurante.setId(5L);
+        restaurante.setNome("Cantina da Nonna");
+        restaurante.setTipoDeCozinha(tipoDeCozinhaValido());
+
+        when(restauranteRepository.findById(5L)).thenReturn(Optional.of(restaurante));
+
+        mockMvc.perform(get("/restaurantes/5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Cantina da Nonna"));
+    }
+
+    @Test
+    void naoDeveBuscarRestauranteInexistentePorId() throws Exception {
+        when(restauranteRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> mockMvc.perform(get("/restaurantes/404")))
+                .hasCauseInstanceOf(jakarta.persistence.EntityNotFoundException.class);
+    }
+
+    @Test
+    void deveAssociarFormaDePagamentoAoRestaurante() throws Exception {
+        Restaurante restaurante = new Restaurante();
+        restaurante.setId(5L);
+        restaurante.setNome("Cantina da Nonna");
+        restaurante.setTipoDeCozinha(tipoDeCozinhaValido());
+
+        FormaDePagamento pix = new FormaDePagamento("PIX");
+        pix.setId(2L);
+
+        when(restauranteRepository.findById(5L)).thenReturn(Optional.of(restaurante));
+        when(formaDePagamentoRepository.findById(2L)).thenReturn(Optional.of(pix));
+
+        mockMvc.perform(post("/restaurantes/5/forma-de-pagamento/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.formasDePagamento[0].nome").value("PIX"));
+
+        assertThat(restaurante.getFormasDePagamento()).contains(pix);
+        verify(restauranteRepository).save(restaurante);
+    }
+
+    @Test
+    void deveDesassociarFormaDePagamentoDoRestaurante() throws Exception {
+        FormaDePagamento pix = new FormaDePagamento("PIX");
+        pix.setId(2L);
+
+        Restaurante restaurante = new Restaurante();
+        restaurante.setId(5L);
+        restaurante.setNome("Cantina da Nonna");
+        restaurante.setTipoDeCozinha(tipoDeCozinhaValido());
+        restaurante.getFormasDePagamento().add(pix);
+
+        when(restauranteRepository.findById(5L)).thenReturn(Optional.of(restaurante));
+        when(formaDePagamentoRepository.findById(2L)).thenReturn(Optional.of(pix));
+
+        mockMvc.perform(delete("/restaurantes/5/forma-de-pagamento/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.formasDePagamento.length()").value(0));
+
+        assertThat(restaurante.getFormasDePagamento()).doesNotContain(pix);
+        verify(restauranteRepository).save(restaurante);
     }
 }

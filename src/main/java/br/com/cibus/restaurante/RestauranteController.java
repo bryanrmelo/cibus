@@ -1,9 +1,12 @@
 package br.com.cibus.restaurante;
 
+import br.com.cibus.formasdepagamento.FormaDePagamento;
+import br.com.cibus.formasdepagamento.FormaDePagamentoRepository;
 import br.com.cibus.tipodecozinha.TipoDeCozinha;
 import br.com.cibus.tipodecozinha.TipoDeCozinhaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +18,20 @@ public class RestauranteController {
 
     private final RestauranteRepository restauranteRepository;
     private final TipoDeCozinhaRepository tipoDeCozinhaRepository;
+    private final FormaDePagamentoRepository formaDePagamentoRepository;
 
-    public RestauranteController(RestauranteRepository restauranteRepository, TipoDeCozinhaRepository tipoDeCozinhaRepository) {
+    public RestauranteController(RestauranteRepository restauranteRepository, TipoDeCozinhaRepository tipoDeCozinhaRepository, FormaDePagamentoRepository formaDePagamentoRepository) {
         this.restauranteRepository = restauranteRepository;
         this.tipoDeCozinhaRepository = tipoDeCozinhaRepository;
+        this.formaDePagamentoRepository = formaDePagamentoRepository;
+    }
+
+    @GetMapping("/restaurantes/{id}")
+    public ResponseEntity<RestauranteResponse> getOne(@PathVariable Long id) {
+        Restaurante restaurante = restauranteRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurante não existe"));
+
+        return ResponseEntity.ok(new RestauranteResponse(restaurante));
     }
 
     @GetMapping("/restaurantes")
@@ -83,5 +96,35 @@ public class RestauranteController {
         restauranteRepository.deleteById(restaurante.getId());
 
         return ResponseEntity.noContent().build();
+    }
+
+    // associa uma forma de pagamento a um restaurante
+    @PostMapping("/restaurantes/{restauranteId}/forma-de-pagamento/{formaDePagamentoId}")
+    public ResponseEntity<RestauranteResponse> associarFormaDePagamento(
+            @PathVariable Long restauranteId,
+            @PathVariable Long formaDePagamentoId) {
+
+        Restaurante restaurante = restauranteRepository.findById(restauranteId).orElseThrow(() -> new EntityNotFoundException("Restaurante não existe"));
+        FormaDePagamento formaDePagamento = formaDePagamentoRepository.findById(formaDePagamentoId).orElseThrow(() -> new EntityNotFoundException(("Forma de pagamento não existe")));
+
+        restaurante.getFormasDePagamento().add(formaDePagamento);
+        restauranteRepository.save(restaurante);
+
+        return ResponseEntity.ok(new RestauranteResponse(restaurante));
+    }
+
+    // dessasocia uma forma de pagamento de um restaurante
+    @DeleteMapping("/restaurantes/{restauranteId}/forma-de-pagamento/{formaDePagamentoId}")
+    public ResponseEntity<RestauranteResponse> desassociarFormaDePagamento(
+            @PathVariable Long restauranteId,
+            @PathVariable Long formaDePagamentoId) {
+
+        Restaurante restaurante = restauranteRepository.findById(restauranteId).orElseThrow(() -> new EntityNotFoundException("Restaurante não existe"));
+        FormaDePagamento formaDePagamento = formaDePagamentoRepository.findById(formaDePagamentoId).orElseThrow(() -> new EntityNotFoundException(("Forma de pagamento não existe")));
+
+        restaurante.getFormasDePagamento().remove(formaDePagamento);
+        restauranteRepository.save(restaurante);
+
+        return ResponseEntity.ok(new RestauranteResponse(restaurante));
     }
 }
