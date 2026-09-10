@@ -1,7 +1,8 @@
-package br.com.cibus.restaurante;
+package br.com.cibus.dto.restaurante;
 
-import br.com.cibus.formasdepagamento.FormaDePagamentoResponse;
-import br.com.cibus.tipodecozinha.TipoDeCozinhaResponse;
+import br.com.cibus.dto.formasdepagamento.FormaDePagamentoResponse;
+import br.com.cibus.dto.tipodecozinha.TipoDeCozinhaResponse;
+import br.com.cibus.model.Restaurante;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;

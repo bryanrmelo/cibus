@@ -1,8 +1,8 @@
 package br.com.cibus;
 
-import br.com.cibus.tipodecozinha.TipoDeCozinha;
-import br.com.cibus.tipodecozinha.TipoDeCozinhaController;
-import br.com.cibus.tipodecozinha.TipoDeCozinhaRepository;
+import br.com.cibus.controller.TipoDeCozinhaController;
+import br.com.cibus.model.TipoDeCozinha;
+import br.com.cibus.service.TipoDeCozinhaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ public class TipoDeCozinhaControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private TipoDeCozinhaRepository tipoDeCozinhaRepository;
+    private TipoDeCozinhaService tipoDeCozinhaService;
 
     private ObjectMapper jsonParser = new ObjectMapper();
 
@@ -40,17 +40,19 @@ public class TipoDeCozinhaControllerTest {
             { "nome": "Fusion" }
         """;
 
+        when(tipoDeCozinhaService.create(any())).thenReturn(new TipoDeCozinha(1L, "Fusion"));
+
         mockMvc.perform(post("/tipos-de-cozinha").contentType(MediaType.APPLICATION_JSON).content(novoTipoDeCozinhaJson))
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        verify(tipoDeCozinhaRepository).save(any(TipoDeCozinha.class));
+        verify(tipoDeCozinhaService).create(any());
 
     }
 
     @Test
     void deveListarTiposDeCozinha() throws Exception {
-        when(tipoDeCozinhaRepository.findAll()).thenReturn(List.of(new TipoDeCozinha(1L, "Árabe"),new TipoDeCozinha(2L, "Peruana") ));
+        when(tipoDeCozinhaService.list()).thenReturn(List.of(new TipoDeCozinha(1L, "Árabe"),new TipoDeCozinha(2L, "Peruana") ));
 
         MvcResult mvcResult = mockMvc.perform(get("/tipos-de-cozinha"))
                 .andExpect(status().isOk())
@@ -61,8 +63,8 @@ public class TipoDeCozinhaControllerTest {
 
         assertThat(responseData).hasSize(2);
 
-        verify(tipoDeCozinhaRepository).findAll();
-        verifyNoMoreInteractions(tipoDeCozinhaRepository);
+        verify(tipoDeCozinhaService).list();
+        verifyNoMoreInteractions(tipoDeCozinhaService);
     }
 
 }

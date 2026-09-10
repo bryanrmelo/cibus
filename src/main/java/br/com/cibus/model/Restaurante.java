@@ -1,7 +1,5 @@
-package br.com.cibus.restaurante;
+package br.com.cibus.model;
 
-import br.com.cibus.formasdepagamento.FormaDePagamento;
-import br.com.cibus.tipodecozinha.TipoDeCozinha;
 import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicUpdate;
 

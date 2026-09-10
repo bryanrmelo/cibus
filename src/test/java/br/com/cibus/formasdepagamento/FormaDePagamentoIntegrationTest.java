@@ -1,6 +1,7 @@
 package br.com.cibus.formasdepagamento;
 
 import br.com.cibus.IntegrationTestBase;
+import br.com.cibus.repository.FormaDePagamentoRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

@@ -1,6 +1,6 @@
-package br.com.cibus.restaurante;
+package br.com.cibus.repository;
 
-import br.com.cibus.tipodecozinha.TipoDeCozinha;
+import br.com.cibus.model.Restaurante;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

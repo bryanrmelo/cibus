@@ -1,6 +1,7 @@
 package br.com.cibus.restaurante;
 
 import br.com.cibus.IntegrationTestBase;
+import br.com.cibus.repository.RestauranteRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

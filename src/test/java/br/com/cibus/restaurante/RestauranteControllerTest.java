@@ -1,10 +1,12 @@
 package br.com.cibus.restaurante;
 
-import br.com.cibus.formasdepagamento.FormaDePagamento;
-import br.com.cibus.formasdepagamento.FormaDePagamentoRepository;
-import br.com.cibus.tipodecozinha.TipoDeCozinha;
-import br.com.cibus.tipodecozinha.TipoDeCozinhaRepository;
+import br.com.cibus.controller.RestauranteController;
+import br.com.cibus.model.FormaDePagamento;
+import br.com.cibus.model.Restaurante;
+import br.com.cibus.model.TipoDeCozinha;
+import br.com.cibus.service.RestauranteService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -15,11 +17,11 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,13 +34,7 @@ class RestauranteControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private RestauranteRepository restauranteRepository;
-
-    @MockBean
-    private TipoDeCozinhaRepository tipoDeCozinhaRepository;
-
-    @MockBean
-    private FormaDePagamentoRepository formaDePagamentoRepository;
+    private RestauranteService restauranteService;
 
     private final ObjectMapper jsonParser = new ObjectMapper();
 
@@ -50,7 +46,11 @@ class RestauranteControllerTest {
 
     @Test
     void deveCriarNovoRestaurante() throws Exception {
-        when(tipoDeCozinhaRepository.findById(1L)).thenReturn(Optional.of(tipoDeCozinhaValido()));
+        Restaurante restaurante = new Restaurante();
+        restaurante.setNome("Cantina da Nonna");
+        restaurante.setTipoDeCozinha(tipoDeCozinhaValido());
+
+        when(restauranteService.create(any())).thenReturn(restaurante);
 
         String novoRestauranteJson = """
             {
@@ -67,12 +67,12 @@ class RestauranteControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.nome").value("Cantina da Nonna"));
 
-        verify(restauranteRepository).save(any(Restaurante.class));
+        verify(restauranteService).create(any());
     }
 
     @Test
     void naoDeveCriarRestauranteComTipoDeCozinhaInexistente() throws Exception {
-        when(tipoDeCozinhaRepository.findById(99L)).thenReturn(Optional.empty());
+        when(restauranteService.create(any())).thenThrow(new EntityNotFoundException("Tipo de cozinha não encontrado"));
 
         String novoRestauranteJson = """
             {
@@ -87,8 +87,6 @@ class RestauranteControllerTest {
 
         assertThatThrownBy(() -> mockMvc.perform(post("/restaurantes").contentType(MediaType.APPLICATION_JSON).content(novoRestauranteJson)))
                 .hasCauseInstanceOf(jakarta.persistence.EntityNotFoundException.class);
-
-        verify(restauranteRepository, never()).save(any());
     }
 
     @Test
@@ -98,7 +96,7 @@ class RestauranteControllerTest {
         restaurante.setNome("Cantina da Nonna");
         restaurante.setTipoDeCozinha(tipoDeCozinhaValido());
 
-        when(restauranteRepository.findByTipoDeCozinhaId(1L)).thenReturn(List.of(restaurante));
+        when(restauranteService.list(1L, null)).thenReturn(List.of(restaurante));
 
         MvcResult mvcResult = mockMvc.perform(get("/restaurantes").param("tipoDeCozinhaId", "1"))
                 .andExpect(status().isOk())
@@ -107,27 +105,27 @@ class RestauranteControllerTest {
         List<Map<String, String>> responseData = jsonParser.readValue(mvcResult.getResponse().getContentAsString(), List.class);
         assertThat(responseData).hasSize(1);
 
-        verify(restauranteRepository).findByTipoDeCozinhaId(1L);
+        verify(restauranteService).list(1L, null);
     }
 
     @Test
     void deveContarRestaurantesPorTipoDeCozinha() throws Exception {
-        when(restauranteRepository.countByTipoDeCozinhaId(1L)).thenReturn(3);
+        when(restauranteService.countByTipo(1L)).thenReturn(3);
 
         mockMvc.perform(get("/restaurantes/count").param("tipoDeCozinhaId", "1"))
                 .andExpect(status().isOk());
 
-        verify(restauranteRepository).countByTipoDeCozinhaId(1L);
+        verify(restauranteService).countByTipo(1L);
     }
 
     @Test
     void deveAtualizarRestauranteExistente() throws Exception {
         Restaurante existente = new Restaurante();
         existente.setId(5L);
-        existente.setNome("Cantina da Nonna");
+        existente.setNome("Cantina da Nonna 2");
+        existente.setTipoDeCozinha(tipoDeCozinhaValido());
 
-        when(restauranteRepository.findById(5L)).thenReturn(Optional.of(existente));
-        when(tipoDeCozinhaRepository.findById(1L)).thenReturn(Optional.of(tipoDeCozinhaValido()));
+        when(restauranteService.update(eq(5L), any())).thenReturn(existente);
 
         String atualizacaoJson = """
             {
@@ -144,12 +142,12 @@ class RestauranteControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("Cantina da Nonna 2"));
 
-        verify(restauranteRepository).save(existente);
+        verify(restauranteService).update(eq(5L), any());
     }
 
     @Test
     void naoDeveAtualizarRestauranteInexistente() throws Exception {
-        when(restauranteRepository.findById(404L)).thenReturn(Optional.empty());
+        when(restauranteService.update(eq(404L), any())).thenThrow(new EntityNotFoundException("Restaurante não existe"));
 
         String atualizacaoJson = """
             {
@@ -164,21 +162,14 @@ class RestauranteControllerTest {
 
         assertThatThrownBy(() -> mockMvc.perform(put("/restaurantes/404").contentType(MediaType.APPLICATION_JSON).content(atualizacaoJson)))
                 .hasCauseInstanceOf(jakarta.persistence.EntityNotFoundException.class);
-
-        verify(restauranteRepository, never()).save(any());
     }
 
     @Test
     void deveRemoverRestauranteExistente() throws Exception {
-        Restaurante existente = new Restaurante();
-        existente.setId(5L);
-
-        when(restauranteRepository.findById(5L)).thenReturn(Optional.of(existente));
-
         mockMvc.perform(delete("/restaurantes/5"))
                 .andExpect(status().isNoContent());
 
-        verify(restauranteRepository).deleteById(5L);
+        verify(restauranteService).remove(5L);
     }
 
     @Test
@@ -188,7 +179,7 @@ class RestauranteControllerTest {
         restaurante.setNome("Cantina da Nonna");
         restaurante.setTipoDeCozinha(tipoDeCozinhaValido());
 
-        when(restauranteRepository.findById(5L)).thenReturn(Optional.of(restaurante));
+        when(restauranteService.getOne(5L)).thenReturn(restaurante);
 
         mockMvc.perform(get("/restaurantes/5"))
                 .andExpect(status().isOk())
@@ -197,7 +188,7 @@ class RestauranteControllerTest {
 
     @Test
     void naoDeveBuscarRestauranteInexistentePorId() throws Exception {
-        when(restauranteRepository.findById(404L)).thenReturn(Optional.empty());
+        when(restauranteService.getOne(404L)).thenThrow(new EntityNotFoundException("Restaurante não existe"));
 
         assertThatThrownBy(() -> mockMvc.perform(get("/restaurantes/404")))
                 .hasCauseInstanceOf(jakarta.persistence.EntityNotFoundException.class);
@@ -212,37 +203,30 @@ class RestauranteControllerTest {
 
         FormaDePagamento pix = new FormaDePagamento("PIX");
         pix.setId(2L);
+        restaurante.getFormasDePagamento().add(pix);
 
-        when(restauranteRepository.findById(5L)).thenReturn(Optional.of(restaurante));
-        when(formaDePagamentoRepository.findById(2L)).thenReturn(Optional.of(pix));
+        when(restauranteService.associarFormaDePagamento(5L, 2L)).thenReturn(restaurante);
 
         mockMvc.perform(post("/restaurantes/5/forma-de-pagamento/2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.formasDePagamento[0].nome").value("PIX"));
 
-        assertThat(restaurante.getFormasDePagamento()).contains(pix);
-        verify(restauranteRepository).save(restaurante);
+        verify(restauranteService).associarFormaDePagamento(5L, 2L);
     }
 
     @Test
     void deveDesassociarFormaDePagamentoDoRestaurante() throws Exception {
-        FormaDePagamento pix = new FormaDePagamento("PIX");
-        pix.setId(2L);
-
         Restaurante restaurante = new Restaurante();
         restaurante.setId(5L);
         restaurante.setNome("Cantina da Nonna");
         restaurante.setTipoDeCozinha(tipoDeCozinhaValido());
-        restaurante.getFormasDePagamento().add(pix);
 
-        when(restauranteRepository.findById(5L)).thenReturn(Optional.of(restaurante));
-        when(formaDePagamentoRepository.findById(2L)).thenReturn(Optional.of(pix));
+        when(restauranteService.desassociarFormaDePagamento(5L, 2L)).thenReturn(restaurante);
 
         mockMvc.perform(delete("/restaurantes/5/forma-de-pagamento/2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.formasDePagamento.length()").value(0));
 
-        assertThat(restaurante.getFormasDePagamento()).doesNotContain(pix);
-        verify(restauranteRepository).save(restaurante);
+        verify(restauranteService).desassociarFormaDePagamento(5L, 2L);
     }
 }

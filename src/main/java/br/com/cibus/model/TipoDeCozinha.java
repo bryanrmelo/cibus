@@ -1,9 +1,9 @@
-package br.com.cibus.formasdepagamento;
+package br.com.cibus.model;
 
 import jakarta.persistence.*;
 
 @Entity
-public class FormaDePagamento {
+public class TipoDeCozinha {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,10 +13,16 @@ public class FormaDePagamento {
     private String nome;
 
     @Deprecated
-    public FormaDePagamento() {}
+    protected TipoDeCozinha() {
+    }
 
-    public FormaDePagamento(String nome) {
+    public TipoDeCozinha(String nome) {
         this.nome = nome;
+    }
+
+    public TipoDeCozinha(Long id, String nome) {
+        this(nome);
+        this.id = id;
     }
 
     public Long getId() {
@@ -33,5 +39,13 @@ public class FormaDePagamento {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    @Override
+    public String toString() {
+        return "TipoDeCozinha{" +
+                "id=" + id +
+                ", nome='" + nome + '\'' +
+                '}';
     }
 }

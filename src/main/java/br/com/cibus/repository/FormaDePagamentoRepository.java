@@ -1,5 +1,6 @@
-package br.com.cibus.formasdepagamento;
+package br.com.cibus.repository;
 
+import br.com.cibus.model.FormaDePagamento;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

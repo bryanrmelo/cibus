@@ -1,10 +1,12 @@
 package br.com.cibus.restaurante;
 
 import br.com.cibus.IntegrationTestBase;
-import br.com.cibus.formasdepagamento.FormaDePagamento;
-import br.com.cibus.formasdepagamento.FormaDePagamentoRepository;
-import br.com.cibus.tipodecozinha.TipoDeCozinha;
-import br.com.cibus.tipodecozinha.TipoDeCozinhaRepository;
+import br.com.cibus.model.FormaDePagamento;
+import br.com.cibus.repository.FormaDePagamentoRepository;
+import br.com.cibus.model.TipoDeCozinha;
+import br.com.cibus.repository.TipoDeCozinhaRepository;
+import br.com.cibus.model.Restaurante;
+import br.com.cibus.repository.RestauranteRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

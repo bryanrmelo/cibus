@@ -1,5 +1,6 @@
-package br.com.cibus.formasdepagamento;
+package br.com.cibus.dto.formasdepagamento;
 
+import br.com.cibus.model.FormaDePagamento;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FormaDePagamentoResponse {
