@@ -5,6 +5,7 @@ import br.com.cibus.dto.restaurante.NovoRestauranteRequest;
 import br.com.cibus.model.FormaDePagamento;
 import br.com.cibus.model.Restaurante;
 import br.com.cibus.model.TipoDeCozinha;
+import br.com.cibus.model.relatorios.RelatorioTipoDeCozinha;
 import br.com.cibus.repository.FormaDePagamentoRepository;
 import br.com.cibus.repository.RestauranteRepository;
 import br.com.cibus.repository.TipoDeCozinhaRepository;
@@ -107,5 +108,9 @@ public class RestauranteService {
         restauranteRepository.save(restaurante);
 
         return restaurante;
+    }
+
+    public RelatorioTipoDeCozinha gerarRelatorioPorTipoDeCozinha() {
+
     }
 }

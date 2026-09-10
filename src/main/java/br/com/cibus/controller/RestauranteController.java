@@ -2,8 +2,10 @@ package br.com.cibus.controller;
 
 import br.com.cibus.dto.restaurante.AtualizaRestauranteRequest;
 import br.com.cibus.dto.restaurante.NovoRestauranteRequest;
+import br.com.cibus.dto.restaurante.RelatorioTipoDeCozinhaResponse;
 import br.com.cibus.dto.restaurante.RestauranteResponse;
 import br.com.cibus.model.Restaurante;
+import br.com.cibus.model.relatorios.RelatorioTipoDeCozinha;
 import br.com.cibus.service.RestauranteService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -77,5 +79,12 @@ public class RestauranteController {
 
         Restaurante restaurante = restauranteService.desassociarFormaDePagamento(restauranteId, formaDePagamentoId);
         return ResponseEntity.ok(new RestauranteResponse(restaurante));
+    }
+
+    @GetMapping("/restaurantes/relatorio-por-tipo-de-cozinha")
+    public ResponseEntity<RelatorioTipoDeCozinhaResponse> gerarRelatorioPorTipoDeCozinha() {
+        RelatorioTipoDeCozinha relatorio = restauranteService.gerarRelatorioPorTipoDeCozinha();
+
+        return ResponseEntity.ok(new RelatorioTipoDeCozinhaResponse(relatorio.getNome(), relatorio.getQuantidade()));
     }
 }
