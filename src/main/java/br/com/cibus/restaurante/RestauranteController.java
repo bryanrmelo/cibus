@@ -22,4 +22,9 @@ public class RestauranteController {
                 .map(RestauranteResponse::new)
                 .toList();
     }
+
+    @GetMapping("/count-restaurante-por-tipo-de-cozinha")
+    public int countByTipo(@RequestParam Long tipoDeCozinhaId) {
+        return restauranteRepository.countByTipoDeCozinhaId(tipoDeCozinhaId);
+    }
 }

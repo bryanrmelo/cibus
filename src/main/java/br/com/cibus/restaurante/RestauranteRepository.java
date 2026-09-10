@@ -8,4 +8,5 @@ import java.util.List;
 public interface RestauranteRepository extends JpaRepository<Restaurante, Long> {
 
     List<Restaurante> findByTipoDeCozinhaId(Long tipoDeCozinhaId);
+    int countByTipoDeCozinhaId(Long tipoDeCozinhaId);
 }
