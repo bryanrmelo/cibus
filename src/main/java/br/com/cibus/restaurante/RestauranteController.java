@@ -29,7 +29,7 @@ public class RestauranteController {
                 .toList();
     }
 
-    @GetMapping("/count")
+    @GetMapping("/restaurantes/count")
     public int countByTipo(@RequestParam Long tipoDeCozinhaId) {
         return restauranteRepository.countByTipoDeCozinhaId(tipoDeCozinhaId);
     }
